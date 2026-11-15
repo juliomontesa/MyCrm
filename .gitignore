@@ -1,0 +1,16 @@
+# Respaldos y archivos temporales de edición
+*.bak
+*.truncado.bak
+__history/
+*.~*~
+*.swp
+
+# Archivos del sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Páginas y datos de prueba locales
+_test*.html
+_vista_harness.html
+_demo_seed.json
