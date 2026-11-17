@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Tus datos no salen de este computador: sin scripts de terceros ni código dentro del HTML.
-       La única conexión permitida es leer el archivo de novedades de alvarocofre.dev. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self' data:; frame-src blob:; connect-src https://alvarocofre.dev; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <!-- Tus datos no salen de este computador: los guarda MySQL en esta misma máquina.
+       La única conexión externa permitida es leer el archivo de novedades de alvarocofre.dev. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self' data:; frame-src blob:; connect-src 'self' https://alvarocofre.dev; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <title>Mi CRM </title>
   <link rel="stylesheet" href="app/css/estilos.css">
 </head>
 <body>
-  <!-- Si este navegador no puede correr el CRM, queda este mensaje a la vista. -->
+  <!-- Si el servidor o MySQL no responden, queda este mensaje a la vista. -->
   <div id="app" class="cargando">
-    <p class="sin-js">Abriendo tu CRM…<br><br>Si este mensaje no desaparece, abre el archivo "Abrir CRM" con Google Chrome o Microsoft Edge: clic derecho sobre el archivo, "Abrir con" y elige uno de los dos.</p>
+    <p class="sin-js">Abriendo tu CRM…<br><br>Si este mensaje no desaparece, abre "iniciar-crm.bat" y espera a que la ventana diga que el CRM está listo. No abras Index.html con doble clic: el CRM necesita su servidor y MySQL.</p>
   </div>
 
   <script src="app/vendor/pdfmake.min.js"></script>

@@ -14,3 +14,8 @@ desktop.ini
 _test*.html
 _vista_harness.html
 _demo_seed.json
+
+# Servidor local
+__pycache__/
+*.pyc
+servidor/*.log

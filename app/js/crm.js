@@ -954,18 +954,48 @@
         return estado
       }
 
-      function re() {
-        let a;
+      const API = "/api/db";
+
+      function pedir(metodo, cuerpo) {
         try {
-          a = localStorage.getItem(e)
+          const x = new XMLHttpRequest;
+          return x.open(metodo, API, !1), cuerpo != null && x.setRequestHeader("Content-Type", "application/json"), x.send(cuerpo == null ? null : cuerpo), {
+            estado: x.status,
+            texto: x.responseText
+          }
         } catch {
           return {
-            error: "sin-almacenamiento"
+            estado: 0,
+            texto: ""
           }
         }
-        if (a == null) return c = ie(), {
-          nuevo: !0
+      }
+
+      function re() {
+        const respuesta = pedir("GET");
+        if (respuesta.estado === 0) return {
+          error: "sin-mysql"
         };
+        const subir = respuesta.estado === 204;
+        if (respuesta.estado !== 200 && !subir) return {
+          error: "sin-mysql"
+        };
+        let a;
+        if (subir) {
+          try {
+            a = localStorage.getItem(e)
+          } catch {
+            a = null
+          }
+          if (a == null) {
+            c = ie();
+            return b(!0) ? {
+              nuevo: !0
+            } : {
+              error: "sin-mysql"
+            }
+          }
+        } else a = respuesta.texto;
         let w;
         try {
           w = JSON.parse(a)
@@ -975,7 +1005,7 @@
             crudo: a
           }
         }
-        const desde = w && typeof w == "object" ? w.version : null;
+        const desde = w && typeof w === "object" ? w.version : null;
         if (desde !== 1 && desde !== VERSION) return {
           error: "version",
           version: desde,
@@ -999,6 +1029,11 @@
               desde: desde
             }
           }
+          if (subir) return b(!0) ? {
+            importado: !0
+          } : {
+            error: "sin-mysql"
+          };
           return {}
         } catch {
           return f = !0, {
@@ -1010,11 +1045,8 @@
 
       function b(silencioso) {
         if (f) return silencioso || s.aviso("No se guardó: el CRM está abierto en otra pestaña. Trabaja en esa.", "error"), !1;
-        try {
-          localStorage.setItem(e, JSON.stringify(c))
-        } catch {
-          return silencioso || s.aviso("No se pudo guardar: el espacio del navegador está lleno. Descarga un respaldo y avísale a quien te pasó el CRM.", "error"), !1
-        }
+        const respuesta = pedir("PUT", JSON.stringify(c));
+        if (respuesta.estado !== 200) return silencioso || s.aviso("No se guardó en MySQL. Revisa que la ventana del servidor siga abierta y que la base de datos esté encendida.", "error"), !1;
         return E.forEach(a => a()), !0
       }
 
@@ -1025,13 +1057,7 @@
       function Y() {
         f = !0
       }
-      const o = () => {
-        try {
-          return ((localStorage.getItem(e) || "").length + e.length) / 5242880
-        } catch {
-          return 0
-        }
-      };
+      const o = () => 0;
 
       const nombreEtapa = a => (V.find(z => z.id === a) || {}).nombre || a,
         nombreEstado = a => (T.find(z => z.id === a) || {}).nombre || a;
@@ -3383,7 +3409,7 @@ Página ` + t + " de " + n].join(""),
       } = v, H = "56920832812", V = "2.0.0", F = "https://alvarocofre.dev/novedades/crm-propuestas.json", r = "crm-propuestas-comunidad:avisos-cerrados", T = {
         equipo: {
           titulo: "¿Tu equipo también necesita ver esto?",
-          texto: "Este CRM vive solo en este computador. Si lo subimos a internet, tus trabajadores entran desde su celular o su notebook, cada uno con su usuario, y ven los mismos leads y cotizaciones en tiempo real.",
+          texto: "Este CRM vive en MySQL, en este computador. Si lo subimos a internet, tus trabajadores entran desde su celular o su notebook, cada uno con su usuario, y ven los mismos leads y cotizaciones en tiempo real.",
           boton: "Quiero subirlo a internet",
           mensaje: "Hola Álvaro, vengo del CRM y quiero que mi equipo también lo use"
         },
@@ -3395,7 +3421,7 @@ Página ` + t + " de " + n].join(""),
         },
         respaldo: {
           titulo: "Respaldo automático en internet",
-          texto: "Si este computador falla o se borra el navegador, pierdes todos tus clientes. En internet tu CRM se respalda solo, todos los días, sin que tengas que acordarte.",
+          texto: "Si este computador falla o se daña la base de datos, pierdes todos tus clientes. En internet tu CRM se respalda solo, todos los días, sin que tengas que acordarte.",
           boton: "Quiero respaldo automático",
           mensaje: "Hola Álvaro, quiero respaldo automático para mi CRM"
         },
@@ -4889,7 +4915,7 @@ Página ` + t + " de " + n].join(""),
         const b = !r.numero,
           L = u.guardarCotizacion(r);
         if (!L) return I("No se pudo guardar.");
-        T = !1, r.id = L.id, r.numero = L.numero, b && location.hash.startsWith("#/nueva") && (history.replaceState(null, "", "#/cotizacion/" + r.id), i && (i.textContent = p())), I("Guardado en este computador")
+        T = !1, r.id = L.id, r.numero = L.numero, b && location.hash.startsWith("#/nueva") && (history.replaceState(null, "", "#/cotizacion/" + r.id), i && (i.textContent = p())), I("Guardado en MySQL")
       }
 
       function j({
@@ -5603,7 +5629,7 @@ Página ` + t + " de " + n].join(""),
       function re(b) {
         i = e("h1", {
           class: "pagina__titulo"
-        }, p()), P = e("span", null, r.numero ? "Guardado en este computador" : "Se guarda solo apenas escribas algo."), doc = e("div", {
+        }, p()), P = e("span", null, r.numero ? "Guardado en MySQL" : "Se guarda solo apenas escribas algo."), doc = e("div", {
           class: "editor__doc"
         }), pintarDoc(), v.poner(b, e("header", {
           class: "pagina__cabeza"
@@ -6246,13 +6272,13 @@ Página ` + t + " de " + n].join(""),
           class: "tarjeta__titulo"
         }, "Tus datos"), e("p", {
           class: "texto-3"
-        }, "Viven solo en este computador, dentro de este navegador. No se suben a internet."))), e("div", {
+        }, "Viven en MySQL, en este computador. No se suben a internet."))), e("div", {
           class: "aviso-caja"
-        }, oe("escudo"), e("p", null, "Si alguien borra los datos de navegación de este navegador, se borra también tu CRM. Descarga un respaldo cada semana y guárdalo en otra parte, como tu correo o un pendrive.")), e("div", {
+        }, oe("escudo"), e("p", null, "MySQL guarda todo en este computador. Si el disco falla o la base se daña, necesitas un respaldo: descárgalo cada semana y guárdalo en otra parte, como tu correo o un pendrive.")), e("div", {
           class: "medidor"
         }, e("div", {
           class: "medidor__texto"
-        }, e("span", null, "Espacio usado"), e("strong", null, Math.round(I * 100) + "%")), e("div", {
+        }, e("span", null, "Motor de datos"), e("strong", null, "MySQL")), e("div", {
           class: "medidor__pista"
         }, M)), e("div", {
           class: "tarjeta__pie"
@@ -6369,16 +6395,16 @@ Página ` + t + " de " + n].join(""),
     }, {
       icono: "escudo",
       titulo: "Tus datos y los respaldos",
-      texto: ["Todo queda guardado solo en este computador, dentro del navegador. No se sube a internet y nadie más lo ve.", 'Ojo con esto: si alguien borra los datos de navegación (las "cookies y datos de sitios"), se borra también el CRM. Por eso, descarga un respaldo cada semana y guárdalo en otra parte, como tu correo o un pendrive.', 'Para cambiarte de computador: descarga un respaldo, abre el CRM en el computador nuevo y en Configuración usa "Cargar un respaldo".', "No abras archivos HTML que te manden personas que no conoces: un archivo así, abierto en el mismo navegador, podría leer los datos guardados."]
+      texto: ["Todo queda guardado en MySQL, dentro de este computador. No se sube a internet y nadie más lo ve.", 'MySQL guarda el CRM completo en la base "crm". Si el disco falla o la base se daña, necesitas un respaldo: descárgalo cada semana y guárdalo en otra parte, como tu correo o un pendrive.', 'Para cambiarte de computador: descarga un respaldo, instala MySQL y el servidor en el otro computador y en Configuración usa "Cargar un respaldo".', "No compartas la carpeta de datos de MySQL ni el archivo crm.cnf: ahí está la llave de tu base."]
     }], V = [
-      ["¿Necesito internet?", "No. El CRM funciona completo sin internet. Solo lo necesitas para mandar el PDF por WhatsApp o correo. Si hay internet, al abrirse revisa si salió una versión nueva: solo lee ese aviso, tus datos no salen de este computador."],
-      ["¿Cómo se actualiza?", "Cuando hay una versión nueva, al abrir el CRM te aparece un aviso en Inicio con el botón para descargarla. Descomprímela y reemplaza la carpeta vieja: tus leads, clientes y cotizaciones se mantienen, porque viven en el navegador y no en la carpeta. En Configuración ves qué versión tienes."],
+      ["¿Necesito internet?", "No. El CRM funciona completo sin internet. Se abre con iniciar-crm.bat en este computador. Solo necesitas internet para mandar el PDF por WhatsApp o correo. Si hay internet, al abrirse revisa si salió una versión nueva: solo lee ese aviso, tus datos no salen de este computador."],
+      ["¿Cómo se actualiza?", "Cuando hay una versión nueva, al abrir el CRM te aparece un aviso en Inicio con el botón para descargarla. Descomprímela y reemplaza la carpeta vieja: tus leads, clientes y cotizaciones se mantienen, porque viven en MySQL y no en la carpeta. En Configuración ves qué versión tienes."],
       ["Vengo del Mini CRM, ¿cómo paso mis clientes?", 'En el Mini CRM, entra a Configuración y toca "Guardar copia de seguridad": se descarga un archivo que se llama "mini-crm-respaldo-…". Después, en este CRM, entra a Configuración, toca "Cargar un respaldo" y elige ese archivo. Tus clientes se suman como leads y no se borra nada de lo que ya tenías acá. El logo y los colores se configuran de nuevo.'],
-      ["¿Lo puedo usar en el celular?", 'No, es para computador. Abre siempre el archivo "Abrir CRM" en el mismo computador y con el mismo navegador.'],
-      ["¿Con qué navegador lo abro?", 'Con Google Chrome o Microsoft Edge. Si se te abre en otro, haz clic derecho sobre "Abrir CRM", elige "Abrir con" y escoge uno de esos dos.'],
+      ["¿Lo puedo usar en el celular?", "No por ahora: el servidor y MySQL viven en este computador. Para usarlo desde el celular habría que publicarlo en internet."],
+      ["¿Con qué navegador lo abro?", "Se abre solo en tu navegador al ejecutar iniciar-crm.bat. Si no se abre, entra a http://localhost:8000 con Google Chrome o Microsoft Edge."],
       ["Lo abrí en dos pestañas y una se bloqueó", "Es a propósito, para que una pestaña no borre lo que hiciste en la otra. Trabaja en una sola."],
-      ["¿Puedo mover la carpeta del CRM?", "Sí, puedes moverla dentro del mismo computador. Pero copiarla a otro computador no lleva tus datos: para eso está el respaldo."],
-      ["¿Cuánto cabe?", "Miles de cotizaciones. En Configuración ves cuánto espacio llevas usado."]
+      ["¿Puedo mover la carpeta del CRM?", "Puedes mover la carpeta del programa, pero la base vive en MySQL y no viaja con la carpeta. Para llevarlo a otro computador usa un respaldo."],
+      ["¿Cuánto cabe?", "Lo que aguante el disco de tu computador. MySQL no tiene el límite de 5 MB que tenía el navegador."]
     ];
     s.ruta("ayuda", F => {
       F.appendChild(s.encabezado("Ayuda", "Todo lo que necesitas para usar tu CRM. Si te pierdes, vuelve acá.")), F.appendChild(e("div", {
@@ -6465,7 +6491,7 @@ Página ` + t + " de " + n].join(""),
         class: "respaldo" + (p ? " respaldo--pendiente" : "")
       }, e("div", {
         class: "respaldo__cabeza"
-      }, oe(p ? "alerta" : "escudo"), e("strong", null, p ? "Haz un respaldo" : "Datos en este computador")), e("p", null, f ? "Último respaldo: " + (E === 0 ? "hoy" : E === 1 ? "ayer" : "hace " + E + " días") : "Aún no tienes respaldo."), e("button", {
+      }, oe(p ? "alerta" : "escudo"), e("strong", null, p ? "Haz un respaldo" : "Datos en MySQL")), e("p", null, f ? "Último respaldo: " + (E === 0 ? "hoy" : E === 1 ? "ayer" : "hace " + E + " días") : "Aún no tienes respaldo."), e("button", {
         class: "respaldo__boton",
         type: "button",
         onclick: () => {
@@ -6577,7 +6603,10 @@ Página ` + t + " de " + n].join(""),
     function c() {
       console.log("%c¿Qué buscas por acá? 👀", "font-size:20px;color:#59B9C7;font-weight:bold"), console.log("%cNo hay WordPress, no hay template. Si llegaste hasta acá, escríbeme: alvarocofre.dev", "font-size:14px;color:#2B313F");
       const f = u.cargar();
-      if (f.error === "sin-almacenamiento") return i("Este navegador no deja guardar datos", 'Abre el archivo "Abrir CRM" con Google Chrome o Microsoft Edge. Si ya estás en uno de ellos, revisa que no sea una ventana de incógnito.', null);
+      if (f.error === "sin-mysql") return i("No hay conexión con MySQL", "El CRM guarda todo en MySQL y no pudo conectarse. Revisa que la ventana del servidor siga abierta y que la base de datos esté encendida. Si cerraste la ventana, abre de nuevo iniciar-crm.bat.", s.boton("Reintentar", {
+        tipo: "primario",
+        onclick: () => location.reload()
+      }));
       if (f.error === "ilegible") return i("No pude leer tus datos", "No borré nada. Descarga lo que hay y mándaselo a quien te pasó el CRM para recuperarlo.", s.boton("Descargar mis datos", {
         icono: "descargar",
         tipo: "primario",
@@ -6601,7 +6630,7 @@ Página ` + t + " de " + n].join(""),
       }), u.alCambiar(() => {
         const E = document.querySelector(".lateral");
         E && E.replaceWith(r()), document.querySelectorAll(".menu__item").forEach(y => y.classList.toggle("menu__item--activo", y.dataset.ruta === s.actual().nombre))
-      }), P(), u.estado.negocio || ke.bienvenida(), f.migrado && s.aviso("Tus datos se actualizaron al formato nuevo. No se borró nada."), ue.revisar()
+      }), P(), u.estado.negocio || ke.bienvenida(), f.migrado && s.aviso("Tus datos se actualizaron al formato nuevo. No se borró nada."), f.importado && s.aviso("Tus datos pasaron de este navegador a MySQL. Ya quedan guardados en la base de datos."), ue.revisar()
     }
     return {
       iniciar: c,
